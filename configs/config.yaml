@@ -1,6 +1,7 @@
 data:
   raw_dir: data/raw
   skip_rows: 9
+  years: [2016, 2017, 2018, 2019]
 
 signals:
   wind_speed: "Wind speed"
@@ -24,3 +25,8 @@ cleaning:
     gear_oil_temp: [0, 90]
     gen_bearing_front_temp: [0, 90]
     gen_bearing_rear_temp: [0, 90]
+
+split:
+  train: ["2016-05-01", "2017-07-31"]
+  validation: ["2017-08-01", "2017-10-31"]
+  test: ["2017-11-01", "2019-12-31"]
