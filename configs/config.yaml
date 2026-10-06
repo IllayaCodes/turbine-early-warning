@@ -1,0 +1,26 @@
+data:
+  raw_dir: data/raw
+  skip_rows: 9
+
+signals:
+  wind_speed: "Wind speed"
+  power: "Power"
+  rotor_speed: "Rotor speed"
+  gearbox_speed: "Gearbox speed"
+  ambient_temp: "Nacelle ambient temperature"
+  gear_oil_temp: "Gear oil temperature"
+  gen_bearing_front_temp: "Generator bearing front temperature"
+  gen_bearing_rear_temp: "Generator bearing rear temperature"
+
+cleaning:
+  min_wind_speed: 3.0
+  max_wind_speed: 25.0
+  min_power: 0.0
+  min_rotor_speed: 5.0
+  limits:
+    rotor_speed: [0, 20]
+    power: [-50, 2200]
+    ambient_temp: [-30, 45]
+    gear_oil_temp: [0, 90]
+    gen_bearing_front_temp: [0, 90]
+    gen_bearing_rear_temp: [0, 90]
