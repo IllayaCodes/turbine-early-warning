@@ -4,3 +4,5 @@ data/
 *.pyc
 .ipynb_checkpoints/
 models/
+docs/columns*.txt
+docs/events20*.txt
