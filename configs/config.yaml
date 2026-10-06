@@ -30,3 +30,7 @@ split:
   train: ["2016-05-01", "2017-07-31"]
   validation: ["2017-08-01", "2017-10-31"]
   test: ["2017-11-01", "2019-12-31"]
+
+model:
+  features: [wind_speed, power, rotor_speed, gearbox_speed, ambient_temp]
+  targets: [gear_oil_temp, gen_bearing_front_temp, gen_bearing_rear_temp]
