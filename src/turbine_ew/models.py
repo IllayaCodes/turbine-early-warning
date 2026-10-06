@@ -1,9 +1,27 @@
 import numpy as np
+from sklearn.dummy import DummyRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
+
+
+def make_mean():
+    """Reference model that always predicts the training average."""
+    return DummyRegressor(strategy="mean")
 
 
 def make_linear():
     return LinearRegression()
+
+
+def make_boosting(random_state=0):
+    """Gradient boosting. Early stopping is off so no hidden random split is made."""
+    return HistGradientBoostingRegressor(
+        max_iter=200,
+        learning_rate=0.1,
+        max_depth=6,
+        early_stopping=False,
+        random_state=random_state,
+    )
 
 
 def fit_model(model, train_df, features, target):
