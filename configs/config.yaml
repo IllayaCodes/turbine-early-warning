@@ -45,3 +45,12 @@ event:
     train: ["2019-07-01", "2020-06-30"]
     validation: ["2020-07-01", "2020-10-31"]
     test: ["2020-11-01", "2021-07-01"]
+
+alerts:
+  min_rows_per_day: 36
+  min_other_turbines: 3
+  k: 4.0
+  floor_c: 2.0
+  min_validation_days: 30
+  consecutive_days: 3
+  window_days: 30
