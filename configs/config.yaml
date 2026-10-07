@@ -18,6 +18,8 @@ cleaning:
   max_wind_speed: 25.0
   min_power: 0.0
   min_rotor_speed: 5.0
+  min_stop_rows: 12
+  warmup_rows: 36
   limits:
     rotor_speed: [0, 20]
     power: [-50, 2200]
