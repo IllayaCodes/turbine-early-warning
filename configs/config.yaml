@@ -34,3 +34,12 @@ split:
 model:
   features: [wind_speed, power, rotor_speed, gearbox_speed, ambient_temp]
   targets: [gear_oil_temp, gen_bearing_front_temp, gen_bearing_rear_temp]
+
+event:
+  years: [2019, 2020, 2021]
+  turbine: 6
+  fault_start: "2021-02-05 08:46:16"
+  split:
+    train: ["2019-07-01", "2020-06-30"]
+    validation: ["2020-07-01", "2020-10-31"]
+    test: ["2020-11-01", "2021-07-01"]
