@@ -63,9 +63,11 @@ print()
 print("alerts in the test block", test_start, "to", test_end)
 if rows:
     table = pd.DataFrame(rows)
+    table.to_csv("docs/alerts_test.csv", index=False)
     print(table.to_string(index=False))
     print()
     print("alert count per target:")
     print(table.groupby("target").size().to_string())
+    print("saved docs/alerts_test.csv")
 else:
     print("no alerts")
