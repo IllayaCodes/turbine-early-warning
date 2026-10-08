@@ -54,3 +54,12 @@ alerts:
   min_validation_days: 30
   consecutive_days: 3
   window_days: 30
+
+period2:
+  years: [2017, 2018, 2019]
+  turbine: 6
+  fault_start: null
+  split:
+    train: ["2017-07-01", "2018-06-30"]
+    validation: ["2018-07-01", "2018-10-31"]
+    test: ["2018-11-01", "2019-12-31"]

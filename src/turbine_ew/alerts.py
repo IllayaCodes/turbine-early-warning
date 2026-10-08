@@ -61,3 +61,35 @@ def lead_days(alert_date, fault_start, window_days):
     if 0 <= delta <= window_days:
         return delta
     return None
+
+def merge_episodes(alerts, max_gap_days):
+    """Merge alerts on the same turbine and target when the gap is at most max_gap_days.
+
+    alerts needs the columns turbine, target, start, end (as Timestamps) and lead_days.
+    Returns one row per episode with start, end, n_alerts and lead_days.
+    """
+    columns = ["turbine", "target", "start", "end", "n_alerts", "lead_days"]
+    rows = []
+    ordered = alerts.sort_values(["turbine", "target", "start"])
+    for (turbine, target), group in ordered.groupby(["turbine", "target"]):
+        cur = None
+        for _, a in group.iterrows():
+            if cur is not None and (a["start"] - cur["end"]).days <= max_gap_days:
+                cur["end"] = max(cur["end"], a["end"])
+                cur["n_alerts"] += 1
+                if pd.isna(cur["lead_days"]):
+                    cur["lead_days"] = a["lead_days"]
+            else:
+                if cur is not None:
+                    rows.append(cur)
+                cur = {
+                    "turbine": turbine,
+                    "target": target,
+                    "start": a["start"],
+                    "end": a["end"],
+                    "n_alerts": 1,
+                    "lead_days": a["lead_days"],
+                }
+        if cur is not None:
+            rows.append(cur)
+    return pd.DataFrame(rows, columns=columns)

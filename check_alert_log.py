@@ -10,10 +10,11 @@ with open("configs/config.yaml", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
 
 csv_path = sys.argv[1] if len(sys.argv) > 1 else "docs/alerts_boosting.csv"
+section = sys.argv[2] if len(sys.argv) > 2 else "event"
 alerts = pd.read_csv(csv_path, parse_dates=["start", "alert_date", "end"])
 
 frames = []
-for year in cfg["event"]["years"]:
+for year in cfg[section]["years"]:
     folder = Path(cfg["data"]["raw_dir"]) / f"kelmarsh{year}"
     for f in sorted(folder.glob("Status_Kelmarsh_*.csv")):
         d = pd.read_csv(f, skiprows=9)

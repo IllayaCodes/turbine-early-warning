@@ -12,14 +12,14 @@ MAKERS = {"linear": make_linear, "boosting": make_boosting}
 ALERT_COLUMNS = ["turbine", "target", "start", "alert_date", "end", "days", "lead_days"]
 
 
-def daily_residuals(cfg, model_names, turbines=range(1, 7)):
-    """Daily mean residual per model, target and turbine, for the event years.
+def daily_residuals(cfg, model_names, turbines=range(1, 7), section="event"):
+    """Daily mean residual per model, target and turbine, for the section's years.
 
-    Each model is trained on the event train block only.
+    Each model is trained on the section's train block only.
     Returns {model_name: {target: {turbine: daily Series}}}.
     """
     d = cfg["data"]
-    ev = cfg["event"]
+    ev = cfg[section]
     min_rows = cfg["alerts"]["min_rows_per_day"]
     features = cfg["model"]["features"]
     targets = cfg["model"]["targets"]
@@ -37,10 +37,11 @@ def daily_residuals(cfg, model_names, turbines=range(1, 7)):
     return daily
 
 
-def event_alerts(cfg, daily_by_target):
+def event_alerts(cfg, daily_by_target, section="event"):
     """Thresholds (from validation days only) and alerts (in the test block) for one model."""
-    ev = cfg["event"]
+    ev = cfg[section]
     al = cfg["alerts"]
+    fault = ev.get("fault_start")
     val_start, val_end = ev["split"]["validation"]
     test_start, test_end = ev["split"]["test"]
     thresholds = []
@@ -57,8 +58,8 @@ def event_alerts(cfg, daily_by_target):
             thresholds.append({"turbine": turbine, "target": target, "threshold_C": round(thr, 2)})
             for a in find_alerts(series.loc[test_start:test_end], thr, al["consecutive_days"]):
                 lead = None
-                if turbine == ev["turbine"]:
-                    lead = lead_days(a["alert_date"], ev["fault_start"], al["window_days"])
+                if fault and turbine == ev["turbine"]:
+                    lead = lead_days(a["alert_date"], fault, al["window_days"])
                 rows.append({
                     "turbine": turbine,
                     "target": target,
