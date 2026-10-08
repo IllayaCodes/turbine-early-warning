@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -8,7 +9,8 @@ KEYWORDS = "temp|heat|fan|cool"
 with open("configs/config.yaml", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
 
-alerts = pd.read_csv("docs/alerts_test.csv", parse_dates=["start", "alert_date", "end"])
+csv_path = sys.argv[1] if len(sys.argv) > 1 else "docs/alerts_boosting.csv"
+alerts = pd.read_csv(csv_path, parse_dates=["start", "alert_date", "end"])
 
 frames = []
 for year in cfg["event"]["years"]:

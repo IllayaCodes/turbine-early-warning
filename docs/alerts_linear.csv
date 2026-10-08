@@ -1,0 +1,14 @@
+turbine,target,start,alert_date,end,days,lead_days
+4,gen_bearing_front_temp,2020-12-23,2020-12-25,2020-12-26,4,
+1,gen_bearing_rear_temp,2020-12-09,2020-12-11,2020-12-12,4,
+1,gen_bearing_rear_temp,2021-01-02,2021-01-04,2021-01-04,3,
+1,gen_bearing_rear_temp,2021-01-11,2021-01-13,2021-01-13,3,
+4,gen_bearing_rear_temp,2021-01-02,2021-01-04,2021-01-04,3,
+4,gen_bearing_rear_temp,2021-01-28,2021-01-30,2021-01-30,3,
+5,gen_bearing_rear_temp,2021-01-16,2021-01-18,2021-01-18,3,
+5,gen_bearing_rear_temp,2021-02-15,2021-02-17,2021-02-17,3,
+5,gen_bearing_rear_temp,2021-03-26,2021-03-28,2021-04-02,8,
+5,gen_bearing_rear_temp,2021-04-04,2021-04-06,2021-04-09,6,
+5,gen_bearing_rear_temp,2021-04-20,2021-04-22,2021-04-22,3,
+5,gen_bearing_rear_temp,2021-05-03,2021-05-05,2021-05-13,11,
+6,gen_bearing_rear_temp,2021-01-19,2021-01-21,2021-01-23,5,15.0

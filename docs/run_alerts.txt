@@ -1,0 +1,94 @@
+﻿done turbine 1
+done turbine 2
+done turbine 3
+done turbine 4
+done turbine 5
+done turbine 6
+
+===== linear =====
+thresholds (C):
+target   gear_oil_temp  gen_bearing_front_temp  gen_bearing_rear_temp
+turbine                                                              
+1                 2.15                    2.10                   2.13
+2                 2.49                    2.77                   2.00
+3                 2.29                    2.00                   2.57
+4                 2.00                    2.16                   2.92
+5                 2.63                    2.34                   2.00
+6                 2.98                    2.82                   3.14
+alerts:
+ turbine                 target      start alert_date        end  days  lead_days
+       4 gen_bearing_front_temp 2020-12-23 2020-12-25 2020-12-26     4        NaN
+       1  gen_bearing_rear_temp 2020-12-09 2020-12-11 2020-12-12     4        NaN
+       1  gen_bearing_rear_temp 2021-01-02 2021-01-04 2021-01-04     3        NaN
+       1  gen_bearing_rear_temp 2021-01-11 2021-01-13 2021-01-13     3        NaN
+       4  gen_bearing_rear_temp 2021-01-02 2021-01-04 2021-01-04     3        NaN
+       4  gen_bearing_rear_temp 2021-01-28 2021-01-30 2021-01-30     3        NaN
+       5  gen_bearing_rear_temp 2021-01-16 2021-01-18 2021-01-18     3        NaN
+       5  gen_bearing_rear_temp 2021-02-15 2021-02-17 2021-02-17     3        NaN
+       5  gen_bearing_rear_temp 2021-03-26 2021-03-28 2021-04-02     8        NaN
+       5  gen_bearing_rear_temp 2021-04-04 2021-04-06 2021-04-09     6        NaN
+       5  gen_bearing_rear_temp 2021-04-20 2021-04-22 2021-04-22     3        NaN
+       5  gen_bearing_rear_temp 2021-05-03 2021-05-05 2021-05-13    11        NaN
+       6  gen_bearing_rear_temp 2021-01-19 2021-01-21 2021-01-23     5       15.0
+
+===== boosting =====
+thresholds (C):
+target   gear_oil_temp  gen_bearing_front_temp  gen_bearing_rear_temp
+turbine                                                              
+1                  2.0                    2.00                   2.09
+2                  2.0                    2.21                   2.00
+3                  2.0                    2.00                   2.22
+4                  2.0                    2.25                   3.27
+5                  2.0                    2.59                   2.00
+6                  2.0                    2.82                   2.81
+alerts:
+ turbine                 target      start alert_date        end  days  lead_days
+       2 gen_bearing_front_temp 2020-12-09 2020-12-11 2020-12-11     3        NaN
+       4 gen_bearing_front_temp 2020-12-23 2020-12-25 2020-12-26     4        NaN
+       4 gen_bearing_front_temp 2021-02-08 2021-02-10 2021-02-12     5        NaN
+       1  gen_bearing_rear_temp 2020-12-09 2020-12-11 2020-12-12     4        NaN
+       1  gen_bearing_rear_temp 2021-01-02 2021-01-04 2021-01-04     3        NaN
+       1  gen_bearing_rear_temp 2021-01-11 2021-01-13 2021-01-13     3        NaN
+       4  gen_bearing_rear_temp 2021-01-02 2021-01-04 2021-01-04     3        NaN
+       4  gen_bearing_rear_temp 2021-01-28 2021-01-30 2021-01-30     3        NaN
+       5  gen_bearing_rear_temp 2021-01-23 2021-01-25 2021-01-25     3        NaN
+       5  gen_bearing_rear_temp 2021-02-08 2021-02-10 2021-02-12     5        NaN
+       5  gen_bearing_rear_temp 2021-02-15 2021-02-17 2021-02-17     3        NaN
+       5  gen_bearing_rear_temp 2021-03-16 2021-03-18 2021-03-19     4        NaN
+       5  gen_bearing_rear_temp 2021-03-23 2021-03-25 2021-04-12    21        NaN
+       5  gen_bearing_rear_temp 2021-04-24 2021-04-26 2021-04-26     3        NaN
+       5  gen_bearing_rear_temp 2021-05-03 2021-05-05 2021-05-08     6        NaN
+       5  gen_bearing_rear_temp 2021-05-10 2021-05-12 2021-05-13     4        NaN
+       5  gen_bearing_rear_temp 2021-05-17 2021-05-19 2021-05-19     3        NaN
+       5  gen_bearing_rear_temp 2021-05-23 2021-05-25 2021-05-25     3        NaN
+       6  gen_bearing_rear_temp 2021-01-19 2021-01-21 2021-01-23     5       15.0
+
+summary over the test block 2020-11-01 to 2021-07-01 (about 8.0 months)
+   model  hits  lead_days  unmatched  per_turbine_month  per_sensor_month  turbine5_rear
+  linear     1       15.0         12               0.25             0.084              6
+boosting     1       15.0         18               0.38             0.126             10
+
+turbine 5 weekly mean residual minus the other turbines (boosting):
+            gear_oil_temp  gen_bearing_front_temp  gen_bearing_rear_temp
+time                                                                    
+2021-01-10           -0.6                    -0.3                    1.9
+2021-01-17           -0.6                     0.5                    1.2
+2021-01-24           -0.7                    -1.4                    1.9
+2021-01-31           -0.1                     0.1                    1.9
+2021-02-07           -0.6                     0.4                    1.4
+2021-02-14           -0.2                    -0.3                    2.1
+2021-02-21           -0.2                     0.0                    1.8
+2021-02-28           -0.4                    -0.0                    1.7
+2021-03-07            0.3                     0.5                    1.9
+2021-03-14           -0.8                    -0.1                    2.1
+2021-03-21           -0.2                     0.6                    2.1
+2021-03-28           -0.6                    -0.1                    2.3
+2021-04-04           -0.0                     0.7                    2.6
+2021-04-11            0.3                     0.4                    2.8
+2021-04-18           -0.5                     0.2                    3.7
+2021-04-25            0.3                     0.6                    2.3
+2021-05-02           -0.4                     0.6                    1.8
+2021-05-09           -0.2                     0.1                    2.6
+2021-05-16           -0.1                     0.0                    2.2
+2021-05-23           -0.4                    -0.5                    2.3
+2021-05-30           -0.3                     0.3                    0.8
