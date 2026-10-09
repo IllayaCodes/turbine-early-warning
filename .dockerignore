@@ -1,0 +1,8 @@
+.venv
+.git
+data
+docs
+notebooks
+tests
+*.zip
+*.bundle
