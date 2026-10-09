@@ -63,3 +63,8 @@ period2:
     train: ["2017-07-01", "2018-06-30"]
     validation: ["2018-07-01", "2018-10-31"]
     test: ["2018-11-01", "2019-12-31"]
+
+serving:
+  model: linear
+  section: event
+  models_dir: models
