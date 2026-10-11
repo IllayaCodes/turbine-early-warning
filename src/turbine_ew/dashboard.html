@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turbine early warning dashboard</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --ink: #1c2330; --muted: #5b6577; --line: #d9dde5;
+  --ok: #1d7a46; --okbg: #e5f4ea; --warn: #8a5a00; --warnbg: #fff1d2; --bad: #b3261e; --badbg: #fde6e4;
+  --trace: #2459c9; --thr: #b3261e; --shade: #e9ecf2;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161d; --card: #1b212b; --ink: #e8ecf3; --muted: #9aa5b8; --line: #2f3846;
+    --ok: #62d08c; --okbg: #17331f; --warn: #f2c25b; --warnbg: #3a2e10; --bad: #ff8a80; --badbg: #3d1b19;
+    --trace: #7aa6ff; --thr: #ff8a80; --shade: #232b37;
+  }
+}
+* { box-sizing: border-box; }
+:root { color-scheme: light dark; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 40px; }
+h1 { font-size: 22px; margin: 0 0 2px; }
+h2 { font-size: 15px; margin: 0 0 10px; }
+.sub { color: var(--muted); margin: 0 0 14px; }
+.note { background: var(--warnbg); color: var(--ink); border-left: 4px solid var(--warn); padding: 10px 12px; border-radius: 6px; margin-bottom: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.tile b { display: block; font-size: 24px; }
+.tile span { color: var(--muted); font-size: 13px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.controls label { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+select, button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+button.primary { background: var(--trace); color: #fff; border-color: var(--trace); }
+input[type=range] { flex: 1 1 260px; min-width: 160px; }
+#today { font-weight: 600; min-width: 92px; }
+.fleet { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.turbine { text-align: left; border-radius: 10px; padding: 10px 12px; border: 2px solid var(--line); background: var(--card); }
+.turbine.sel { border-color: var(--trace); }
+.turbine .name { font-weight: 600; }
+.turbine .state { font-weight: 700; margin: 2px 0; }
+.turbine .meta { color: var(--muted); font-size: 12.5px; }
+.s-ok .state { color: var(--ok); } .s-ok { background: var(--okbg); }
+.s-warn .state { color: var(--warn); } .s-warn { background: var(--warnbg); }
+.s-bad .state { color: var(--bad); } .s-bad { background: var(--badbg); }
+.s-none .state { color: var(--muted); }
+svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; margin-top: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; }
+ul.log { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow: auto; }
+ul.log li { border-top: 1px solid var(--line); }
+ul.log li:first-child { border-top: 0; }
+ul.log button { width: 100%; text-align: left; border: 0; border-radius: 0; background: transparent; padding: 8px 4px; }
+ul.log .when { font-weight: 600; }
+.muted { color: var(--muted); }
+.cave li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Turbine early warning dashboard</h1>
+  <p class="sub" id="subtitle"></p>
+  <div class="note"><b>This is a replay, not live data.</b> It plays back stored SCADA history one day at a time and shows what the alert rule would have shown on each day. The rule and thresholds are the ones scored in the project, and thresholds were set from the validation period only.</div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <div class="controls">
+      <label>Sensor <select id="target"></select></label>
+      <button id="play" class="primary" type="button">Play</button>
+      <label>Speed <select id="speed">
+        <option value="4">4 days per second</option>
+        <option value="12" selected>12 days per second</option>
+        <option value="30">30 days per second</option>
+      </select></label>
+      <span id="today"></span>
+      <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Replay date">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Fleet status on the selected day</h2>
+    <div class="fleet" id="fleet"></div>
+  </div>
+
+  <div class="card">
+    <h2 id="chartTitle"></h2>
+    <svg id="chart" viewBox="0 0 900 330" role="img" aria-label="Residual against the alert threshold over time"></svg>
+    <div class="legend">
+      <span><i style="border-color: var(--trace)"></i>daily residual relative to the other turbines</span>
+      <span><i style="border-color: var(--thr); border-top-style: dashed"></i>alert threshold</span>
+      <span><span style="color: var(--thr)">&#9650;</span> alert fires (after the required days in a row above)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Alerts fired up to the selected day</h2>
+    <ul class="log" id="log"></ul>
+  </div>
+
+  <div class="card">
+    <h2>How to read this, and what it does not show</h2>
+    <ul class="cave" id="cave"></ul>
+  </div>
+</main>
+
+<script id="payload" type="application/json">DATAGOESHERE</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById("payload").textContent);
+  var dates = D.dates;
+  var n = dates.length;
+  var testStart = 0;
+  for (var i = 0; i < n; i++) { if (dates[i] >= D.test[0]) { testStart = i; break; } }
+  var sel = { target: D.targets[0], turbine: D.turbines[0] };
+  var cur = n - 1;
+  var timer = null;
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  function el(id) { return document.getElementById(id); }
+  function label(t) { return D.labels[t] || t; }
+  function series(t, k) { return D.series[t][String(k)]; }
+
+  function alertsFor(t, k) {
+    return D.alerts.filter(function (a) { return a.target === t && a.turbine === k; });
+  }
+  function activeAlert(t, k, d) {
+    var list = alertsFor(t, k);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].alertDate <= d && d <= list[i].end) { return list[i]; }
+    }
+    return null;
+  }
+  function daysBetween(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 86400000); }
+
+  function setupText() {
+    el("subtitle").textContent = "Kelmarsh turbines " + D.turbines.join(", ") + " | " + D.modelName + " normal-behaviour model | " +
+      "test block " + D.test[0] + " to " + D.test[1];
+    var total = D.alerts.length;
+    var hits = D.alerts.filter(function (a) { return a.leadDays !== null; });
+    var tiles = [
+      [String(total), "alerts fired in the test block, all sensors"],
+      [String(hits.length), hits.length ? "matched to the logged stop, " + hits.map(function (a) { return a.leadDays; }).join(", ") + " days ahead" : "matched to a logged stop"],
+      [String(total - hits.length), "not matched to a labelled stop (not all are false alarms)"],
+      [D.rule.consecutiveDays + " days", "in a row above the threshold before an alert fires"]
+    ];
+    el("tiles").innerHTML = tiles.map(function (t) {
+      return '<div class="tile"><b>' + t[0] + "</b><span>" + t[1] + "</span></div>";
+    }).join("");
+    var cave = [
+      "The line is the daily mean of (actual minus predicted temperature), minus the median of the same quantity on the other turbines that day. Weather and load shared by the fleet cancel out.",
+      "The threshold is the larger of " + D.rule.k + " times the robust spread of healthy validation days and " + D.rule.floorC + " degrees C. It is learned per turbine and per sensor.",
+      "An alert fires after " + D.rule.consecutiveDays + " consecutive days above the threshold, which is the first day a live system could have raised it.",
+      "Only one logged drivetrain stop exists in this data. One matched alert with a lead time is an example, not a measured detection rate.",
+      "Unmatched alerts are unlabelled. Some follow long stops, some are one unexplained sensor, and none have been confirmed as faults or as false alarms.",
+      "The replay uses the saved results of one training run. Live input would need a daily feed of the same signals and a retrained or monitored model."
+    ];
+    el("cave").innerHTML = cave.map(function (c) { return "<li>" + c + "</li>"; }).join("");
+    el("target").innerHTML = D.targets.map(function (t) { return '<option value="' + t + '">' + label(t) + "</option>"; }).join("");
+    el("scrub").max = String(n - 1);
+  }
+
+  function renderFleet() {
+    var d = dates[cur];
+    el("fleet").innerHTML = D.turbines.map(function (k) {
+      var s = series(sel.target, k);
+      var v = s ? s.values[cur] : null;
+      var thr = s ? s.threshold : null;
+      var a = activeAlert(sel.target, k, d);
+      var cls = "s-none", state = "No data", meta = "";
+      if (!s || thr === null) { state = "No threshold"; meta = "not enough healthy days"; }
+      else if (a) { cls = "s-bad"; state = "ALERT"; meta = "since " + a.alertDate; }
+      else if (v === null || d < D.test[0]) {
+        cls = "s-none"; state = v === null ? "No data" : "Learning"; meta = v === null ? "too few clean rows" : "validation period";
+      }
+      else if (v > thr) { cls = "s-warn"; state = "Above threshold"; meta = "not yet " + D.rule.consecutiveDays + " days"; }
+      else { cls = "s-ok"; state = "Normal"; }
+      var also = [];
+      D.targets.forEach(function (t) {
+        if (t !== sel.target && activeAlert(t, k, d)) { also.push(label(t)); }
+      });
+      if (also.length) { meta += (meta ? " | " : "") + "also ALERT: " + also.join(", "); }
+      var num = (v === null || thr === null) ? "" : v.toFixed(2) + " vs " + thr.toFixed(2) + " C";
+      return '<button type="button" class="turbine ' + cls + (k === sel.turbine ? " sel" : "") + '" data-k="' + k + '">' +
+        '<div class="name">Turbine ' + k + '</div><div class="state">' + state + '</div><div class="meta">' + num + (num && meta ? " | " : "") + meta + "</div></button>";
+    }).join("");
+    var btns = el("fleet").querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].onclick = function () { sel.turbine = Number(this.getAttribute("data-k")); render(); };
+    }
+  }
+
+  function niceStep(span) {
+    var steps = [0.5, 1, 2, 5, 10, 20, 50];
+    for (var i = 0; i < steps.length; i++) { if (span / steps[i] <= 6) { return steps[i]; } }
+    return 100;
+  }
+
+  function renderChart() {
+    var W = 900, H = 330, L = 46, R = 14, T = 14, B = 30;
+    var s = series(sel.target, sel.turbine);
+    el("chartTitle").textContent = "Turbine " + sel.turbine + ", " + label(sel.target) + ": residual against the fleet";
+    if (!s) { el("chart").innerHTML = ""; return; }
+    var vals = s.values.filter(function (v) { return v !== null; });
+    var lo = Math.min(0, Math.min.apply(null, vals.concat([s.threshold === null ? 0 : s.threshold])));
+    var hi = Math.max(0, Math.max.apply(null, vals.concat([s.threshold === null ? 0 : s.threshold])));
+    var step = niceStep(hi - lo || 1);
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    if (hi === lo) { hi = lo + step; }
+    function X(i) { return L + (i / (n - 1)) * (W - L - R); }
+    function Y(v) { return T + (1 - (v - lo) / (hi - lo)) * (H - T - B); }
+    var out = [];
+    var testX = X(testStart);
+    out.push('<rect x="' + L + '" y="' + T + '" width="' + (testX - L) + '" height="' + (H - T - B) + '" fill="var(--shade)"/>');
+    out.push('<text x="' + (L + 6) + '" y="' + (T + 14) + '" font-size="11" fill="var(--muted)">threshold learned here</text>');
+    for (var v = lo; v <= hi + 1e-9; v += step) {
+      out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--line)"/>');
+      out.push('<text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" font-size="11" text-anchor="end" fill="var(--muted)">' + (Math.round(v * 10) / 10) + "</text>");
+    }
+    for (var i = 0; i < n; i++) {
+      if (dates[i].slice(8, 10) === "01" && (dates[i].slice(5, 7) === "01" || dates[i].slice(5, 7) === "04" || dates[i].slice(5, 7) === "07" || dates[i].slice(5, 7) === "10" || i < 3)) {
+        out.push('<text x="' + X(i) + '" y="' + (H - 10) + '" font-size="11" text-anchor="' + (X(i) > W - 60 ? "end" : "middle") + '" fill="var(--muted)">' + MONTHS[Number(dates[i].slice(5, 7)) - 1] + " " + dates[i].slice(0, 4) + "</text>");
+      }
+    }
+    var list = alertsFor(sel.target, sel.turbine);
+    list.forEach(function (a) {
+      if (a.alertDate > dates[cur]) { return; }
+      var i0 = dates.indexOf(a.start), i1 = Math.min(dates.indexOf(a.end), cur);
+      if (i0 < 0) { return; }
+      out.push('<rect x="' + X(i0) + '" y="' + T + '" width="' + Math.max(2, X(i1) - X(i0)) + '" height="' + (H - T - B) + '" fill="var(--bad)" opacity="0.13"/>');
+    });
+    if (s.threshold !== null) {
+      out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(s.threshold) + '" y2="' + Y(s.threshold) + '" stroke="var(--thr)" stroke-width="1.5" stroke-dasharray="6 4"/>');
+    }
+    var path = "", pen = false;
+    for (var j = 0; j <= cur; j++) {
+      var val = s.values[j];
+      if (val === null) { pen = false; continue; }
+      path += (pen ? "L" : "M") + X(j).toFixed(1) + " " + Y(val).toFixed(1);
+      pen = true;
+    }
+    out.push('<path d="' + path + '" fill="none" stroke="var(--trace)" stroke-width="1.6"/>');
+    list.forEach(function (a) {
+      if (a.alertDate > dates[cur]) { return; }
+      var i = dates.indexOf(a.alertDate);
+      if (i < 0 || s.values[i] === null) { return; }
+      var x = X(i), y = Y(s.values[i]);
+      out.push('<polygon points="' + x + "," + (y - 3) + " " + (x - 6) + "," + (y + 9) + " " + (x + 6) + "," + (y + 9) + '" fill="var(--thr)"/>');
+    });
+    if (D.faultStart && sel.turbine === D.faultTurbine && dates[cur] >= D.faultStart.slice(0, 10)) {
+      var fi = dates.indexOf(D.faultStart.slice(0, 10));
+      if (fi >= 0) {
+        out.push('<line x1="' + X(fi) + '" x2="' + X(fi) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--ink)" stroke-width="1.5"/>');
+        out.push('<text x="' + (X(fi) - 5) + '" y="' + (T + 14) + '" font-size="11" text-anchor="end" fill="var(--ink)">logged stop ' + D.faultStart.slice(0, 10) + "</text>");
+      }
+    }
+    out.push('<line x1="' + X(cur) + '" x2="' + X(cur) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--muted)" stroke-width="1"/>');
+    el("chart").innerHTML = out.join("");
+  }
+
+  function renderLog() {
+    var d = dates[cur];
+    var shown = D.alerts.filter(function (a) { return a.alertDate <= d; });
+    shown.sort(function (a, b) { return a.alertDate < b.alertDate ? 1 : -1; });
+    if (!shown.length) { el("log").innerHTML = '<li class="muted" style="padding: 8px 4px">No alerts yet on this day.</li>'; return; }
+    el("log").innerHTML = shown.map(function (a, idx) {
+      var running = Math.min(daysBetween(a.start, d), daysBetween(a.start, a.end)) + 1;
+      var ongoing = d < a.end;
+      var tail = "";
+      if (a.leadDays !== null && d >= (D.faultStart || "").slice(0, 10)) { tail = " | a logged stop followed " + a.leadDays + " days later"; }
+      return '<li><button type="button" data-i="' + idx + '"><span class="when">' + a.alertDate + "</span> | turbine " + a.turbine + " | " + label(a.target) +
+        ' <span class="muted">| above the threshold for ' + running + (ongoing ? " days so far" : " days") + tail + "</span></button></li>";
+    }).join("");
+    var btns = el("log").querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].onclick = function () {
+        var a = shown[Number(this.getAttribute("data-i"))];
+        sel.target = a.target; sel.turbine = a.turbine; el("target").value = a.target; render();
+      };
+    }
+  }
+
+  function render() {
+    el("today").textContent = dates[cur];
+    el("scrub").value = String(cur);
+    renderFleet(); renderChart(); renderLog();
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    el("play").textContent = "Play";
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    if (cur >= n - 1) { cur = testStart; render(); }
+    el("play").textContent = "Pause";
+    var perSecond = Number(el("speed").value);
+    timer = setInterval(function () {
+      if (cur >= n - 1) { stop(); return; }
+      cur += 1; render();
+    }, 1000 / perSecond);
+  }
+
+  setupText();
+  el("target").onchange = function () { sel.target = this.value; render(); };
+  el("scrub").oninput = function () { stop(); cur = Number(this.value); render(); };
+  el("play").onclick = play;
+  el("speed").onchange = function () { if (timer) { stop(); play(); } };
+  render();
+})();
+</script>
+</body>
+</html>
