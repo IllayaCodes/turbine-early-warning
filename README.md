@@ -6,7 +6,9 @@
 ![Docker](https://img.shields.io/badge/docker-tested-2496ED)
 ![Data licence](https://img.shields.io/badge/data-CC--BY--4.0-lightgrey)
 
-[![Live demo](https://img.shields.io/badge/live%20demo-open%20dashboard-brightgreen)](https://illayacodes.github.io/turbine-early-warning/dashboard.html)
+ Live demo (a replay of stored data, not live data): [Open the dashboard](https://illayacodes.github.io/turbine-early-warning/dashboard.html)
+
+(https://illayacodes.github.io/turbine-early-warning/dashboard.html)
 
 A normal-behaviour pipeline on open wind farm data. It learns how warm a turbine component normally runs for a given wind, power and ambient temperature. When the real temperature stays above the prediction for several days in a row, it raises an alert. Alerts are then checked against the turbine's own status log.
 
